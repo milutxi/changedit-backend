@@ -36,7 +36,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
 
     const posts = await Post
     .find({}, '-comments')
-    .sort({ createdAt: 'descending'})
+    .sort({ score: 'descending'})
     .limit(limit)
     .skip(limit * (page - 1))
     .populate("author", "userName");
@@ -60,6 +60,8 @@ export const getPost = async (req: Request, res: Response) => {
     if(!post) {
         return res.status(404).json({message: 'No post found for id: ' + id})
     }
+
+
 
     res.status(200).json(post)
 }
