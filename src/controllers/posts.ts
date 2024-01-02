@@ -1,14 +1,16 @@
-
 //CRUD controller for Posts
 
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import Post from "../models/Post";
 import { assertDefined } from "../util/assertDefined";
 
  export const create = async (req: Request, res: Response) => {
     assertDefined(req.userId);
     const {title, link, body } = req.body;
+    
 
+    try {
     const post = new Post({
     title,
     link,
@@ -16,7 +18,33 @@ import { assertDefined } from "../util/assertDefined";
     author: req.userId
     })
 
-    try {
+    if(req.file) {
+
+        const dbConnection = mongoose.connection;
+
+        const bucket = new mongoose.mongo.GridFSBucket(dbConnection.db, {
+            bucketName: 'images'
+        })
+
+        const uploadStream = bucket.openUploadStream(req.file.originalname);
+        const fileId = uploadStream.id;
+
+        await new Promise((resolve, reject) => {
+            uploadStream.once('finish', resolve);
+            uploadStream.once('error', reject)
+
+            uploadStream.end(req.file?.buffer)
+        })
+
+        post.image = {
+            mimeType: req.file.mimetype,
+            size: req.file.size,
+            id: fileId
+        }
+
+    }
+
+   
        const savedPost= await post.save();
        res.status(201).json(savedPost);
     }catch (error) {
