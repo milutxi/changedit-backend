@@ -13,7 +13,7 @@ export const createComment = async (req: Request, res: Response) => {
     const post = await Post.findById(postId);
 
     if (!post) {
-        return res.status(404).json({ message: 'nOT POST FOUND FOR ID: ' + postId});
+        return res.status(404).json({ message: 'NOT POST FOUND FOR ID: ' + postId});
     }
 
 
