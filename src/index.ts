@@ -25,6 +25,8 @@ app.get('/profile', validateToken, authController.profile);
 app.post('/posts', validateToken, upload.single('image'), postsController.create);
 app.get('/posts', postsController.getAllPosts);
 app.get('/posts/:id', postsController.getPost);
+app.delete('posts/:id', validateToken, postsController.deletePost);
+app.put('/posts/:id', validateToken, postsController.editPost);
 
 app.post('/posts/:postId/comments', validateToken, commentsController.createComment);
 app.delete('/posts/:postId/comments/:commentId', validateToken, commentsController.deleteComment);
