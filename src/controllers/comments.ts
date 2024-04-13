@@ -33,25 +33,32 @@ export const createComment = async (req: Request, res: Response) => {
 
     assertDefined(userId);
 
-    const post = await Post.findById(postId);
-
-    if (!post) {
-        return res.status(404).json({ message: 'No post found for id: ' + postId});
+    try{
+        const post = await Post.findById(postId);
+        
+        if (!post) {
+            return res.status(404).json({ message: 'No post found for id: ' + postId});
+        }
+        
+        const comment = post.comments.id(commentId);
+        
+        if (!comment) {
+            return res.status(404).json({ message: 'No comment found for id: ' + commentId});
+        }
+        
+        if (comment.author.toString() !== userId) {
+            return res.status(403).json({message: 'Not authorized'})
+        }
+        
+        comment.deleteOne()
+        
+        const updatePost = await post.save();
+        
+        return res.status(200).json(updatePost)
+        
+    }catch(error:any){
+        return res.status(500).json({message: 'Internal Server Error', error: error.message});
     }
 
-    const comment = post.comments.id(commentId);
 
-    if (!comment) {
-        return res.status(404).json({ message: 'No comment found for id: ' + commentId});
-    }
-
-    if (comment.author.toString() !== userId) {
-        return res.status(403).json({message: 'Not authorized'})
-    }
-
-    comment.deleteOne()
-
-    const updatePost = await post.save();
-
-    return res.status(200).json(updatePost)
  }
