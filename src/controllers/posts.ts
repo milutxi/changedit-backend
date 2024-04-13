@@ -9,7 +9,6 @@ import { assertDefined } from "../util/assertDefined";
     assertDefined(req.userId);
     const {title, link, body } = req.body;
     
-
     try {
     const post = new Post({
     title,
@@ -41,10 +40,8 @@ import { assertDefined } from "../util/assertDefined";
             size: req.file.size,
             id: fileId
         }
-
     }
 
-   
        const savedPost= await post.save();
        res.status(201).json(savedPost);
     }catch (error) {
@@ -89,7 +86,50 @@ export const getPost = async (req: Request, res: Response) => {
         return res.status(404).json({message: 'No post found for id: ' + id})
     }
 
-
-
     res.status(200).json(post)
+}
+
+export const editPost = async (req: Request, res: Response) => {
+    const {id} = req.params;
+
+    assertDefined(id);
+
+    try{
+        const post = await Post.findByIdAndUpdate(id, req.body);
+
+        if(!post) {
+            return res.status(404).json({message: 'No post found with id: ' + id})
+        }
+
+        const updatedPost = await Post.findById(id);
+        return res.status(200).json(updatedPost);
+        
+    }catch(error:any){
+        return res.status(500).json({message: 'Internal Server Error', error: error.message});
+    }
+}
+
+export const deletePost = async (req: Request, res: Response) => {
+    const {postId} = req.params;
+    const {userId} = req;
+    assertDefined(userId);
+
+    try{
+        const post = await Post.findById(postId);
+
+        if(!post) {
+            return res.status(404).json({message: 'No post found with this id: ' + postId});
+        }
+
+        if (post.author.toString() !== userId) {
+            return res.status(403).json({ message: "Not authorized"});
+        }
+
+        await post.deleteOne();
+
+        return res.status(200).json({message: 'Post deleted'});
+
+    }catch(error:any){
+        return res.status(500).json({message: 'Internal Server Error', error: error.message});
+    }
 }
