@@ -90,19 +90,30 @@ export const getPost = async (req: Request, res: Response) => {
 }
 
 export const editPost = async (req: Request, res: Response) => {
-    const {id} = req.params;
+    assertDefined(req.userId);
 
-    assertDefined(id);
+    const { title, link, body } = req.body;
 
     try{
-        const post = await Post.findByIdAndUpdate(id, req.body);
+        const post = await Post.findById(req.params.id);
 
         if(!post) {
-            return res.status(404).json({message: 'No post found with id: ' + id})
+            return res.status(404).json({message: 'No post found'})
         }
 
-        const updatedPost = await Post.findById(id);
-        return res.status(200).json(updatedPost);
+        
+        if (post.author.toString() !== req.userId) {
+            return res.status(403).json({ message: "YOU CAN NOT EDIT THIS POST. You are not the author." });
+        }
+        
+        post.title = title || post.title;
+        post.link = link || post.link;
+        post.body = body || post.body;
+        
+        const updatedPost = await post.save();
+
+        res.status(200).json(updatedPost);
+        
         
     }catch(error:any){
         return res.status(500).json({message: 'Internal Server Error', error: error.message});
