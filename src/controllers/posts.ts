@@ -121,19 +121,19 @@ export const editPost = async (req: Request, res: Response) => {
 }
 
 export const deletePost = async (req: Request, res: Response) => {
-    const {postId} = req.params;
+    const {id} = req.params;
     const {userId} = req;
     assertDefined(userId);
 
     try{
-        const post = await Post.findById(postId);
+        const post = await Post.findById(id);
 
         if(!post) {
-            return res.status(404).json({message: 'No post found with this id: ' + postId});
+            return res.status(404).json({message: 'No post found with this id: ' + id});
         }
 
         if (post.author.toString() !== userId) {
-            return res.status(403).json({ message: "Not authorized"});
+            return res.status(403).json({ message: "You did not create this comment. You can not delete it"});
         }
 
         await post.deleteOne();
